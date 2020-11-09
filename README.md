@@ -1,4 +1,4 @@
-# How to User the Auth0 Management API Node Client
+# How to Use the Auth0 Management API Node Client
 
 This is an example of how you can request data from the Auth0 Management API using an Express and Vue application. 
 
