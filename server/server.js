@@ -35,7 +35,7 @@ const checkJwt = jwt({
   // Validate the audience (Identifier) and the issuer (Domain).
   audience: authConfig.audience,
   issuer: `https://${authConfig.domain}/`,
-  algorithm: ["RS256"]
+  algorithms: ["RS256"]
 });
 
 // To obtain a Management API token from your Node backend, you can use Client Credentials Grant using your registered Auth0 Non Interactive Clients
