@@ -24,6 +24,11 @@ export default new Router({
       name: 'eventSingle',
       component: () => import('../views/EventSingle.vue'),
       beforeEnter: authGuard
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/Dashboard.vue')
     }
   ]
 })
