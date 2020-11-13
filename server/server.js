@@ -1,5 +1,5 @@
 // server/server.js
-require("dotenv").config();
+require('dotenv').config();
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -7,8 +7,7 @@ const app = express();
 const port = 8000;
 const jwt = require("express-jwt");
 const jwksRsa = require("jwks-rsa");
-const jwtAuthz = require("express-jwt-authz");
-const ManagementClient = require("auth0").ManagementClient;
+const ManagementClient = require('auth0').ManagementClient;
 
 app.use(bodyParser.json());
 app.use(cors());
@@ -21,6 +20,12 @@ const authConfig = {
   clientId: process.env.CLIENT_ID,
   clientSecret: process.env.CLIENT_SECRET
 };
+
+const managementAPI = new ManagementClient({
+  domain: authConfig.domain,
+  clientId: authConfig.clientId,
+  clientSecret: authConfig.clientSecret
+});
 
 // Create middleware to validate the JWT using express-jwt
 const checkJwt = jwt({
@@ -36,19 +41,6 @@ const checkJwt = jwt({
   audience: authConfig.audience,
   issuer: `https://${authConfig.domain}/`,
   algorithms: ["RS256"]
-});
-
-// To obtain a Management API token from your Node backend, you can use Client Credentials Grant using your registered Auth0 Non Interactive Clients
-
-const managementAPI = new ManagementClient({
-  domain: authConfig.domain,
-  clientId: authConfig.clientId,
-  clientSecret: authConfig.clientSecret
-});
-
-// Middleware to check that the access token has the manage:users permission
-const checkPermissions = jwtAuthz(["manage:users"], {
-  customScopeKey: "permissions"
 });
 
 // mock data to send to our frontend
@@ -83,38 +75,28 @@ let events = [
   }
 ];
 
-// Make a call to the Auth0 Management API only if the correct permissions exist
-// Get all users
-app.get("/users", checkJwt, checkPermissions, (req, res) => {
-  try {
-    managementAPI
-      .getUsers()
-      .then(users => {
-        res.send(users);
-      })
-      .catch(function(err) {
-        res.send(401, "Unauthorized");
-      });
-  } catch (err) {
-    res.send(401, "Unauthorized");
-  }
+// Make a request to the Management API to get all users
+app.get('/users', (req, res) => {
+  managementAPI
+    .getUsers()
+    .then(function(users) {
+      res.send(users);
+    })
+    .catch(function(err) {
+      console.log(err);
+    });
 });
 
-// Make a call to the Auth0 Management API only if the correct permissions exist
-// Delete a user with specified ID
-app.get("/users/:id/delete", checkJwt, checkPermissions, (req, res) => {
-  try {
-    managementAPI
-      .deleteUser({ id: req.params.id })
-      .then(response => {
-        res.send("User deleted!");
-      })
-      .catch(function(err) {
-        res.send(err);
-      });
-  } catch (err) {
+// Make a request to the Management API to delete the specified user
+app.get('/users/:id/delete', (req, res) => {
+  managementAPI
+  .deleteUser({ id: req.params.id })
+  .then(response => {
+    res.send('User deleted!');
+  })
+  .catch(function(err) {
     res.send(err);
-  }
+  });
 });
 
 // get all events
@@ -130,13 +112,6 @@ app.get("/events/:id", checkJwt, (req, res) => {
 
 app.get("/", (req, res) => {
   res.send(`Hi! Server is listening on port ${port}`);
-});
-
-app.use(function(error, req, res, next) {
-  // Any request to this server will get here, and will send an HTTP
-  // response with the error message 'woops'
-  console.log("test");
-  res.json({ message: error });
 });
 
 // listen on the port
